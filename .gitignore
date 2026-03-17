@@ -1,0 +1,17 @@
+# Biar node_modules ga ke-upload ke GitHub
+node_modules/
+
+# File environment (simpan password DB, JWT secret, dll di sini)
+.env
+
+# Log files
+*.log
+npm-debug.log*
+
+# OS stuff
+.DS_Store
+Thumbs.db
+
+# File temp ekstraksi (bisa dihapus)
+extract_pdf.py
+plan_project_extracted.txt

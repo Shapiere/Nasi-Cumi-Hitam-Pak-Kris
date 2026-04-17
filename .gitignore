@@ -15,3 +15,9 @@ Thumbs.db
 # File temp ekstraksi (bisa dihapus)
 extract_pdf.py
 plan_project_extracted.txt
+
+# Prisma generated files (akan di-generate otomatis dari schema)
+backend/src/generated/
+
+# Prisma cache
+.prisma/

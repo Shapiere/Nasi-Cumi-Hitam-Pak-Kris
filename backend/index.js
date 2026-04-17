@@ -5,54 +5,78 @@
 // =====================================================
 
 import express from 'express';
+import prisma from './src/config/prisma.js';
 
 // --- Import semua routes ---
-// Contoh cara hubungin route ke server (pake authRoutes sebagai contoh)
 import authRoutes from './src/routes/authRoutes.js';
 import projectRoutes from './src/routes/projectRoutes.js';
 import donationRoutes from './src/routes/donationRoutes.js';
 import volunteerRoutes from './src/routes/volunteerRoutes.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // --- Middleware bawaan Express ---
-// Ini biar server bisa baca JSON dari request body
 app.use(express.json());
 
 // =====================================================
 // ENDPOINT UTAMA - Cek server masih hidup ga
 // =====================================================
 app.get('/', (req, res) => {
-  res.json({ message: 'API CareConnect Sudah Jalan' });
+  res.json({ message: 'API CareConnect Sudah Jalan ✅' });
 });
 
 // =====================================================
-// CARA HUBUNGIN ROUTES KE SERVER
+// ENDPOINT TEST KONEKSI DATABASE
+// GET /db-test => ngejalanin SELECT sederhana ke DB
 // =====================================================
-// Format: app.use('/PREFIX_URL', namaRoutes)
-// Semua endpoint di dalam file route akan punya prefix ini
+app.get('/db-test', async (req, res) => {
+  try {
+    // Test query sederhana: hitung jumlah user di database
+    const userCount = await prisma.user.count();
+    res.json({
+      status: 'success',
+      message: 'Koneksi ke database PostgreSQL berhasil! ✅',
+      data: {
+        total_users: userCount,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: 'Koneksi ke database GAGAL ❌',
+      error: error.message,
+    });
+  }
+});
 
-// User 1 (Ketua) - Auth & User Management
-// Contoh: POST /auth/login, POST /auth/register
+// =====================================================
+// ROUTES
+// =====================================================
 app.use('/auth', authRoutes);
-
-// User 2 - Project Discovery & Management
-// Contoh: GET /projects, POST /projects
 app.use('/projects', projectRoutes);
-
-// User 3 - Donation System
-// Contoh: POST /donations, GET /donations/history
 app.use('/donations', donationRoutes);
-
-// User 4 - Volunteer Recruitment
-// Contoh: POST /volunteers, GET /volunteers/:projectId
 app.use('/volunteers', volunteerRoutes);
 
 // =====================================================
-// JALANIN SERVERNYA!
+// JALANIN SERVER + UJI KONEKSI DATABASE
 // =====================================================
-app.listen(PORT, () => {
-  console.log(`Server CareConnect nyala di http://localhost:${PORT}`);
-  console.log('Tekan Ctrl+C kalau mau matiin servernya');
-});
+async function main() {
+  try {
+    // Coba konek ke database saat server pertama nyala
+    await prisma.$connect();
+    console.log('✅ Koneksi ke database PostgreSQL berhasil!');
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Server CareConnect nyala di http://localhost:${PORT}`);
+      console.log(`🔍 Cek koneksi DB: http://localhost:${PORT}/db-test`);
+      console.log('Tekan Ctrl+C kalau mau matiin servernya');
+    });
+  } catch (error) {
+    console.error('❌ Gagal konek ke database:', error.message);
+    console.error('Pastikan PostgreSQL kamu sudah nyala dan .env sudah dikonfigurasi!');
+    process.exit(1);
+  }
+}
+
+main();

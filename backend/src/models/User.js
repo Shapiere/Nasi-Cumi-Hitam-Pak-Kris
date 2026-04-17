@@ -1,19 +1,35 @@
-// =========================================
-// User.js - Punya: User 1 (Ketua)
-// Model untuk tabel 'users' di PostgreSQL
-// =========================================
-// Struktur kolom (dari ERD):
-//   id         : uuid (primary key)
-//   name       : varchar
-//   email      : varchar (unique)
-//   password   : varchar (harus di-hash pakai bcrypt!)
-//   role       : varchar ('admin' atau 'user')
-//   created_at : timestamp
+// =====================================================
+// models/User.js - Punya: User 1 (Ketua / Auth)
+// Query database untuk tabel 'users'
+// =====================================================
 
-// Nanti di sini lo bisa taruh query SQL atau
-// setup koneksi ke DB (misal pakai pg atau prisma)
+import prisma from '../config/prisma.js';
 
-// Contoh:
-// import pool from '../db.js';
-// export const findUserByEmail = async (email) => { ... }
-// export const createUser = async (userData) => { ... }
+// Cari user berdasarkan email (dipakai saat login)
+export const findUserByEmail = async (email) => {
+  return await prisma.user.findUnique({
+    where: { email },
+  });
+};
+
+// Buat user baru (dipakai saat register)
+export const createUser = async (userData) => {
+  return await prisma.user.create({
+    data: userData,
+  });
+};
+
+// Cari user berdasarkan ID (dipakai saat cek profile)
+export const findUserById = async (id) => {
+  return await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      created_at: true,
+      // Password sengaja tidak ikut di-return untuk keamanan
+    },
+  });
+};

@@ -31,13 +31,41 @@ export const findProjectById = async (id) => {
 
 // Buat project baru
 export const createProject = async (projectData) => {
+  // Validasi target_donation angka dan tidak negatif
+  const target = parseFloat(projectData.target_donation);
+
+  if (isNaN(target)) {
+    throw new Error('target_donation wajib berupa angka');
+  }
+
+  if (target < 0) {
+    throw new Error('target_donation tidak boleh negatif');
+  }
+
   return await prisma.project.create({
-    data: projectData,
+    data: {
+      ...projectData,
+      target_donation: target,
+    },
   });
 };
 
 // Update project
 export const updateProject = async (id, projectData) => {
+  if (projectData.target_donation !== undefined) {
+    const target = parseFloat(projectData.target_donation);
+
+    if (isNaN(target)) {
+      throw new Error('target_donation wajib berupa angka');
+    }
+
+    if (target < 0) {
+      throw new Error('target_donation tidak boleh negatif');
+    }
+
+    projectData.target_donation = target;
+  }
+
   return await prisma.project.update({
     where: { id },
     data: projectData,

@@ -1,11 +1,76 @@
-// =========================================
-// projectController.js - Punya: User 2
-// =========================================
-// File ini buat logic-nya project:
-//   bikin proyek, edit, hapus, ambil semua, dst.
+import {
+  createProject as createProjectModel,
+  getAllProjects as getAllProjectsModel,
+  findProjectById
+} from '../models/Project.js';
 
-// Contoh struktur controller:
-// export const getAllProjects   = async (req, res) => { ... }
-// export const createProject   = async (req, res) => { ... }
-// export const updateProject   = async (req, res) => { ... }
-// export const deleteProject   = async (req, res) => { ... }
+// CREATE
+export const createProject = async (req, res) => {
+  try {
+    const { title, description, target_donation } = req.body;
+
+    const project = await createProjectModel({
+      title,
+      description,
+      target_donation
+    });
+
+    res.status(201).json({
+      message: 'Project berhasil dibuat',
+      data: project
+    });
+
+  } catch (error) {
+    res.status(400).json({
+      message: error.message
+    });
+  }
+};
+
+// GET ALL
+export const getAllProjects = async (req, res) => {
+  try {
+    const projects = await getAllProjectsModel();
+
+    res.status(200).json({
+      message: 'Data project berhasil diambil',
+      data: projects
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+// GET DETAIL
+export const getProjectById = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(404).json({
+        message: 'Project tidak ditemukan'
+      });
+    }
+
+    const project = await findProjectById(id);
+
+    if (!project) {
+      return res.status(404).json({
+        message: 'Project tidak ditemukan'
+      });
+    }
+
+    res.status(200).json({
+      message: 'Detail project berhasil diambil',
+      data: project
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};

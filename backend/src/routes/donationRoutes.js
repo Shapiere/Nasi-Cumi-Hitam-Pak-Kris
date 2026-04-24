@@ -1,19 +1,27 @@
-// =========================================
-// donationRoutes.js - Punya: User 3
-// Tanggung jawab: Donation System (Payment)
-// =========================================
-// TODO (User 3):
-//   - POST /donations           -> Buat transaksi donasi baru
-//   - GET  /donations/history   -> Riwayat donasi user yang login
-//   - POST /donations/webhook   -> Endpoint buat notif dari Midtrans Sandbox
-//   - GET  /donations/:id       -> Detail satu transaksi
-
 import { Router } from 'express';
+import {
+  createNewDonation,
+  getDonationsByUserController,
+  getDonationsByProjectController,
+  updateDonationStatusController,
+} from '../controllers/donationController.js';
+
 const router = Router();
 
-// Tambahin endpoint lo di sini ya!
-// Contoh:
-// router.post('/', createDonationController);
-// router.get('/history', getDonationHistoryController);
+// POST /donations
+// Body: { user_id, project_id, amount, status?, snap_token? }
+router.post('/', createNewDonation);
+
+// GET /donations?user_id=xxx
+// Riwayat donasi berdasarkan user
+router.get('/', getDonationsByUserController);
+
+// GET /donations/project?project_id=xxx
+// Semua donasi untuk 1 project
+router.get('/project', getDonationsByProjectController);
+
+// PATCH /donations/:id/status
+// Body: { status: "pending" | "success" | "failed" }
+router.patch('/:id/status', updateDonationStatusController);
 
 export default router;

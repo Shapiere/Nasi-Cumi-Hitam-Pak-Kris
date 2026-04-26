@@ -1,47 +1,57 @@
-// =====================================================
-// models/Volunteer.js - Punya: User 4 (Volunteer)
-// Query database untuk tabel 'volunteers'
-// =====================================================
+import prisma from "../config/prisma.js";
 
-import prisma from '../config/prisma.js';
-
-// Daftarkan user sebagai volunteer di sebuah project
-export const createVolunteer = async (volunteerData) => {
+// REGISTER
+export const registerVolunteer = async ({ user_id, project_id }) => {
   return await prisma.volunteer.create({
-    data: volunteerData,
+    data: {
+      user_id,
+      project_id,
+      status: "pending",
+    },
   });
 };
 
-// Ambil semua volunteer untuk satu project
+// CEK SUDAH ADA
+export const checkVolunteerExists = async (user_id, project_id) => {
+  return await prisma.volunteer.findFirst({
+    where: { user_id, project_id },
+  });
+};
+
+// GET BY PROJECT
 export const getVolunteersByProject = async (project_id) => {
   return await prisma.volunteer.findMany({
     where: { project_id },
-    include: {
-      user: {
-        select: { id: true, name: true, email: true },
-      },
-    },
-    orderBy: { joined_at: 'desc' },
+    orderBy: { joined_at: "desc" },
   });
 };
 
-// Ambil semua project yang diikuti oleh seorang user sebagai volunteer
-export const getVolunteersByUser = async (user_id) => {
+// GET ALL
+export const getAllVolunteers = async () => {
   return await prisma.volunteer.findMany({
-    where: { user_id },
-    include: {
-      project: {
-        select: { id: true, title: true },
-      },
-    },
-    orderBy: { joined_at: 'desc' },
+    orderBy: { joined_at: "desc" },
   });
 };
 
-// Update status volunteer (accept/reject oleh admin/owner project)
-export const updateVolunteerStatus = async (id, status) => {
+// APPROVE
+export const approveVolunteerById = async (id) => {
   return await prisma.volunteer.update({
     where: { id },
-    data: { status },
+    data: { status: "accepted" },
+  });
+};
+
+// REJECT
+export const rejectVolunteerById = async (id) => {
+  return await prisma.volunteer.update({
+    where: { id },
+    data: { status: "rejected" },
+  });
+};
+
+// RESIGN (hapus data)
+export const resignVolunteerById = async (id) => {
+  return await prisma.volunteer.delete({
+    where: { id },
   });
 };

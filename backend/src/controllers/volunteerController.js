@@ -13,14 +13,13 @@ import {
 // =========================================
 export const joinProject = async (req, res) => {
   try {
-    const user_id = req.user?.id;
-    const { project_id } = req.body;
+    const { user_id, project_id } = req.body;
 
     // VALIDASI
     if (!user_id || !project_id) {
       return res.status(400).json({
         status: "error",
-        message: "User ID dan Project ID wajib diisi!",
+        message: "user_id dan project_id wajib diisi!",
       });
     }
 

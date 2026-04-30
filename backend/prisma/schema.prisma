@@ -74,6 +74,7 @@ model Donation {
   amount     Decimal  @db.Decimal(15, 2)
   status     String   @default("pending") // "pending", "success", "failed"
   snap_token String?  // Token Midtrans Snap (payment gateway)
+  proof_image String? // Bukti transfer donasi
   created_at DateTime @default(now())
 
   // Relasi ke tabel users (siapa yang donasi)

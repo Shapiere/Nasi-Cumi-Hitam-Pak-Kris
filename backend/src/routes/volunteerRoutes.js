@@ -1,27 +1,18 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   joinProject,
-  getVolunteers,
-  approveVolunteer,
-  rejectVolunteer,
-  resignVolunteer
-} from "../controllers/volunteerController.js";
+  getVolunteersByProjectController,
+  getVolunteersByUserController,
+  updateVolunteerStatusController,
+} from '../controllers/volunteerController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import roleMiddleware from '../middleware/roleMiddleware.js';
 
 const router = Router();
 
-// daftar volunteer
-router.post("/", joinProject);
-
-// ambil data volunteer
-router.get("/", getVolunteers);
-
-// approve
-router.put("/:id/approve", approveVolunteer);
-
-// reject
-router.put("/:id/reject", rejectVolunteer);
-
-// resign
-router.delete("/:id", resignVolunteer);
+router.post('/', authMiddleware, joinProject);
+router.get('/', getVolunteersByProjectController);
+router.get('/user', authMiddleware, getVolunteersByUserController);
+router.patch('/:id/status', authMiddleware, roleMiddleware('admin'), updateVolunteerStatusController);
 
 export default router;

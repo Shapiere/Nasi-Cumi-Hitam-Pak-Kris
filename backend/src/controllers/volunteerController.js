@@ -1,175 +1,132 @@
 import {
-  registerVolunteer,
-  checkVolunteerExists,
-  getAllVolunteers,
+  createVolunteer,
   getVolunteersByProject,
-  approveVolunteerById,
-  rejectVolunteerById,
-  resignVolunteerById
-} from "../models/Volunteer.js";
+  getVolunteersByUser,
+  updateVolunteerStatus,
+} from '../models/Volunteer.js';
+import prisma from '../config/prisma.js';
 
-// =========================================
-// JOIN PROJECT
-// =========================================
 export const joinProject = async (req, res) => {
   try {
-    const { user_id, project_id } = req.body;
+    const { project_id } = req.body;
+    const user_id = req.user.id;
 
-    // VALIDASI
-    if (!user_id || !project_id) {
+    if (!project_id) {
       return res.status(400).json({
-        status: "error",
-        message: "user_id dan project_id wajib diisi!",
+        status: 'error',
+        message: 'project_id wajib diisi!',
       });
     }
 
-    // CEK SUDAH TERDAFTAR
-    const existing = await checkVolunteerExists(user_id, project_id);
+    const existing = await prisma.volunteer.findFirst({
+      where: { user_id, project_id },
+    });
 
     if (existing) {
-      return res.status(400).json({
-        status: "error",
-        message: "Anda sudah terdaftar di project ini!",
+      return res.status(409).json({
+        status: 'error',
+        message: 'Anda sudah terdaftar sebagai volunteer di project ini!',
       });
     }
 
-    // SIMPAN
-    const data = await registerVolunteer({ user_id, project_id });
+    const data = await createVolunteer({ user_id, project_id });
 
     return res.status(201).json({
-      status: "success",
-      message: "Berhasil daftar sebagai relawan!",
+      status: 'success',
+      message: 'Berhasil mendaftar sebagai volunteer!',
       data,
     });
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
-      status: "error",
-      message: error.message,
+      status: 'error',
+      message: 'Terjadi kesalahan pada server.',
+      error: error.message,
     });
   }
 };
 
-// =========================================
-// GET VOLUNTEERS
-// =========================================
-export const getVolunteers = async (req, res) => {
+export const getVolunteersByProjectController = async (req, res) => {
   try {
     const { project_id } = req.query;
 
-    let data;
-
-    if (project_id) {
-      data = await getVolunteersByProject(project_id);
-    } else {
-      data = await getAllVolunteers();
+    if (!project_id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Query parameter project_id wajib diisi!',
+      });
     }
 
+    const data = await getVolunteersByProject(project_id);
+
     return res.status(200).json({
-      status: "success",
-      message: "Data volunteers berhasil diambil!",
+      status: 'success',
+      message: 'Data volunteer berhasil diambil!',
       data,
     });
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
-      status: "error",
-      message: "Terjadi kesalahan pada server",
+      status: 'error',
+      message: 'Terjadi kesalahan pada server.',
+      error: error.message,
     });
   }
 };
 
-// =========================================
-// APPROVE
-// =========================================
-export const approveVolunteer = async (req, res) => {
+export const getVolunteersByUserController = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({
-        status: "error",
-        message: "ID volunteer wajib diisi!",
-      });
-    }
-
-    const data = await approveVolunteerById(id);
+    const user_id = req.user.id;
+    const data = await getVolunteersByUser(user_id);
 
     return res.status(200).json({
-      status: "success",
-      message: "Volunteer berhasil di-approve!",
+      status: 'success',
+      message: 'Data volunteer user berhasil diambil!',
       data,
     });
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
-      status: "error",
-      message: "Terjadi kesalahan pada server",
+      status: 'error',
+      message: 'Terjadi kesalahan pada server.',
+      error: error.message,
     });
   }
 };
 
-// =========================================
-// REJECT
-// =========================================
-export const rejectVolunteer = async (req, res) => {
+export const updateVolunteerStatusController = async (req, res) => {
   try {
     const { id } = req.params;
+    const { status } = req.body;
 
-    if (!id) {
+    if (!id || !status) {
       return res.status(400).json({
-        status: "error",
-        message: "ID volunteer wajib diisi!",
+        status: 'error',
+        message: 'ID volunteer dan status wajib diisi!',
       });
     }
 
-    const data = await rejectVolunteerById(id);
+    const validStatuses = ['pending', 'approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Status tidak valid! Pilih: pending, approved, atau rejected.',
+      });
+    }
+
+    const data = await updateVolunteerStatus(id, status);
 
     return res.status(200).json({
-      status: "success",
-      message: "Volunteer berhasil ditolak!",
+      status: 'success',
+      message: `Status volunteer berhasil diubah menjadi "${status}"`,
       data,
     });
 
   } catch (error) {
-    console.error(error);
     return res.status(500).json({
-      status: "error",
-      message: "Terjadi kesalahan pada server",
-    });
-  }
-};
-
-// =========================================
-// RESIGN
-// =========================================
-export const resignVolunteer = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({
-        status: "error",
-        message: "ID volunteer wajib diisi!",
-      });
-    }
-
-    const data = await resignVolunteerById(id);
-
-    return res.status(200).json({
-      status: "success",
-      message: "Berhasil keluar dari project!",
-      data,
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      status: "error",
-      message: "Terjadi kesalahan pada server",
+      status: 'error',
+      message: 'Terjadi kesalahan pada server.',
+      error: error.message,
     });
   }
 };

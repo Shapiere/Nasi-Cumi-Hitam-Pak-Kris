@@ -1,25 +1,15 @@
-// =========================================
-// projectRoutes.js - Punya: User 2
-// Tanggung jawab: Project Discovery & Management
-// =========================================
-
 import { Router } from 'express';
-
-import {
-  createProject,
-  getAllProjects,
-  getProjectById
-} from '../controllers/projectController.js';
+import { createProject, getAllProjects, getProjectById, updateProject, deleteProject } from '../controllers/projectController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import roleMiddleware from '../middleware/roleMiddleware.js';
+import upload from '../config/multer.js';
 
 const router = Router();
 
-// GET semua project
 router.get('/', getAllProjects);
-
-// GET detail project by id
 router.get('/:id', getProjectById);
-
-// POST buat project baru
-router.post('/', createProject);
+router.post('/', authMiddleware, roleMiddleware('admin'), upload.single('image'), createProject);
+router.put('/:id', authMiddleware, roleMiddleware('admin'), upload.single('image'), updateProject);
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), deleteProject);
 
 export default router;

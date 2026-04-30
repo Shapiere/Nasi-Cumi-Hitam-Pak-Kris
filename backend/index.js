@@ -12,6 +12,7 @@ import authRoutes from './src/routes/authRoutes.js';
 import projectRoutes from './src/routes/projectRoutes.js';
 import donationRoutes from './src/routes/donationRoutes.js';
 import volunteerRoutes from './src/routes/volunteerRoutes.js';
+import multer from 'multer';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -66,6 +67,20 @@ async function main() {
     // Coba konek ke database saat server pertama nyala
     await prisma.$connect();
     console.log('✅ Koneksi ke database PostgreSQL berhasil!');
+
+    // Izinkan folder 'uploads' diakses secara publik via browser
+    app.use('/uploads', express.static('uploads'));
+
+    // Handler error khusus dari Multer
+    app.use((err, req, res, next) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ status: 'error', message: `Upload gagal: ${err.message}` });
+      }
+      if (err) {
+        return res.status(400).json({ status: 'error', message: err.message });
+      }
+      next();
+    });
 
     app.listen(PORT, () => {
       console.log(`🚀 Server CareConnect nyala di http://localhost:${PORT}`);

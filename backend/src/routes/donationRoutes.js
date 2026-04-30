@@ -5,23 +5,14 @@ import {
   getDonationsByProjectController,
   updateDonationStatusController,
 } from '../controllers/donationController.js';
+import authMiddleware from '../middleware/authMiddleware.js';
+import upload from '../config/multer.js';
 
 const router = Router();
 
-// POST /donations
-// Body: { user_id, project_id, amount, status?, snap_token? }
-router.post('/', createNewDonation);
-
-// GET /donations?user_id=xxx
-// Riwayat donasi berdasarkan user
-router.get('/', getDonationsByUserController);
-
-// GET /donations/project?project_id=xxx
-// Semua donasi untuk 1 project
+router.post('/', authMiddleware, upload.single('proof_image'), createNewDonation);
+router.get('/', authMiddleware, getDonationsByUserController);
 router.get('/project', getDonationsByProjectController);
-
-// PATCH /donations/:id/status
-// Body: { status: "pending" | "success" | "failed" }
-router.patch('/:id/status', updateDonationStatusController);
+router.patch('/:id/status', authMiddleware, updateDonationStatusController);
 
 export default router;

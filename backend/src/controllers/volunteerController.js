@@ -47,7 +47,7 @@ export const joinProject = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       status: "error",
-      message: "Terjadi kesalahan pada server",
+      message: error.message,
     });
   }
 };

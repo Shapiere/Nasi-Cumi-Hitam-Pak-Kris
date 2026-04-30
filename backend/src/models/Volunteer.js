@@ -55,3 +55,33 @@ export const resignVolunteerById = async (id) => {
     where: { id },
   });
 };
+
+// ==========================================
+// FUNGSI BARU UNTUK MENDUKUNG SPRINT 6
+// ==========================================
+export const createVolunteer = async ({ user_id, project_id }) => {
+  return await prisma.volunteer.create({
+    data: {
+      user_id,
+      project_id,
+      status: "pending",
+    },
+  });
+};
+
+export const getVolunteersByUser = async (user_id) => {
+  return await prisma.volunteer.findMany({
+    where: { user_id },
+    orderBy: { joined_at: "desc" },
+    include: { project: true }
+  });
+};
+
+export const updateVolunteerStatus = async (id, status) => {
+  // mapping status "approved" ke "accepted" jika diperlukan oleh database lama
+  const finalStatus = status === "approved" ? "accepted" : status;
+  return await prisma.volunteer.update({
+    where: { id },
+    data: { status: finalStatus },
+  });
+};
